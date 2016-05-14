@@ -3,23 +3,28 @@ import urllib
 import json
 from bs4 import BeautifulSoup
 
-urls = ("http://dartmouth.edu/faculty-directory/department?dept=All&page=1", "http://dartmouth.edu/faculty-directory/department?dept=All")
-url = requests.get(urls)
+#urls = ("http://dartmouth.edu/faculty-directory/department?dept=All&page=1", "http://dartmouth.edu/faculty-directory/department?dept=All")
+url_base = "http://dartmouth.edu/faculty-directory/department?dept=All&page="
 
-soup = BeautifulSoup(url.content)
 
-name = soup.find_all("a", {"href":"/faculty-directory/"})
+email_list = []
 
-title = soup.find_all("li", {"class":"first last"})
+f = open('parsed_output.txt', 'w')
 
-email = soup.find_all("a","href":"mailto:")
+max_pages = 50 # set this accordingly
+i=1
 
-for item in name:
-	print name.text
+while i<max_pages:
+	url = url_base + str(i)
+	i = i + 1
+	html = requests.get(url)
+	soup = BeautifulSoup(html.content)
 
-for item in title:
-	print title.text
-
-for item in email:
-	print email.text
+	for e in soup.select('a[href^=mailto]'):
+		parsed_email = e.getText()
+		email_list.append(parsed_email)
+		f.write(parsed_email + ',\n')
 	
+print "extracted " + str(len(email_list)) + " emails"
+
+f.close()
